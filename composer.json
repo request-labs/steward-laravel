@@ -1,5 +1,5 @@
 {
-    "name": "request/steward-laravel",
+    "name": "request-labs/steward-laravel",
     "description": "Steward by Request agent for Laravel sites: reports installed package versions and drift from composer.lock. Read-only.",
     "type": "library",
     "license": "MIT",
