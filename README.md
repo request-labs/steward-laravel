@@ -1,6 +1,6 @@
 # request-labs/steward-laravel
 
-Steward by Request agent for Laravel sites. Every day it reports the PHP version and the installed version of each package the application requires directly, plus any drift from `composer.lock`. Read-only: it changes nothing and never updates itself.
+Steward by Request agent for Laravel sites. Every day it reports the PHP version and the installed version of each package the application requires directly, plus any drift from `composer.lock` and, when the application is a git checkout, the deployed commit (Steward records each new commit as a deploy). Read-only: it changes nothing and never updates itself.
 
 ## Install
 
@@ -16,7 +16,7 @@ STEWARD_AGENT_ID=...
 STEWARD_AGENT_SECRET=...
 ```
 
-The report runs daily from the Laravel scheduler (04:15 by default, `STEWARD_REPORT_AT` to change, empty to disable). To report right after a deploy, add `php artisan steward:report` to the deploy script.
+The report runs daily from the Laravel scheduler (04:15 by default, `STEWARD_REPORT_AT` to change, empty to disable). To report right after a deploy, so Steward records it within seconds instead of the next morning, add `php artisan steward:report` to the end of the deploy script.
 
 ## Development
 
