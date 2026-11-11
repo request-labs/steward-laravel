@@ -5,13 +5,15 @@ namespace Request\StewardLaravel;
 use Composer\InstalledVersions;
 
 /**
- * Builds the schema 1 report: PHP, the installed version of every package the application
- * requires directly, drift where what is installed differs from composer.lock, and the
- * deployed commit when the application is a git checkout.
+ * Builds the schema 1 report: PHP, the installed version of every package in composer.lock
+ * (each marked direct when the application requires it itself, so Steward lists only those
+ * but checks every one for vulnerabilities), drift where what is installed differs from
+ * composer.lock for a package required directly, and the deployed commit when the
+ * application is a git checkout.
  */
 class ReportBuilder
 {
-    public const VERSION = '1.1.0';
+    public const VERSION = '1.2.0';
 
     /**
      * @param  callable(string): ?string  $installedVersion  package name => installed version
@@ -30,26 +32,26 @@ class ReportBuilder
      */
     public function build(): array
     {
-        $required = array_keys($this->readJson('composer.json')['require'] ?? []);
+        $required = array_filter(
+            array_keys($this->readJson('composer.json')['require'] ?? []),
+            fn (string $package): bool => str_contains($package, '/'),
+        );
         $locked = collect($this->readJson('composer.lock')['packages'] ?? [])->pluck('version', 'name')->all();
 
         $components = [];
         $drift = [];
 
-        foreach ($required as $package) {
-            if ($package === 'php' || str_starts_with($package, 'ext-') || ! str_contains($package, '/')) {
-                continue;
-            }
-
+        foreach (array_unique([...$required, ...array_keys($locked)]) as $package) {
             $installed = ($this->installedVersion)($package);
 
             if ($installed === null) {
                 continue;
             }
 
-            $components[] = ['kind' => 'composer', 'slug' => $package, 'name' => $package, 'version' => $installed, 'active' => true];
+            $direct = in_array($package, $required, true);
+            $components[] = ['kind' => 'composer', 'slug' => $package, 'name' => $package, 'version' => $installed, 'active' => true, 'direct' => $direct];
 
-            if (isset($locked[$package]) && $this->normalise($locked[$package]) !== $this->normalise($installed)) {
+            if ($direct && isset($locked[$package]) && $this->normalise($locked[$package]) !== $this->normalise($installed)) {
                 $drift[] = ['package' => $package, 'locked' => $locked[$package], 'installed' => $installed];
             }
         }

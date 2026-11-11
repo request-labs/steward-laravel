@@ -1,6 +1,6 @@
 # request-labs/steward-laravel
 
-Steward by Request agent for Laravel sites. Every day it reports the PHP version and the installed version of each package the application requires directly, plus any drift from `composer.lock` and, when the application is a git checkout, the deployed commit (Steward records each new commit as a deploy). Read-only: it changes nothing and never updates itself.
+Steward by Request agent for Laravel sites. Every day it reports the PHP version and the installed version of every package in `composer.lock`, marking those the application requires directly (Steward lists only these, and checks every package for known vulnerabilities), plus any drift from `composer.lock` in the direct ones and, when the application is a git checkout, the deployed commit (Steward records each new commit as a deploy). Read-only: it changes nothing and never updates itself.
 
 ## Install
 
