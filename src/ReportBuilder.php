@@ -13,7 +13,7 @@ use Composer\InstalledVersions;
  */
 class ReportBuilder
 {
-    public const VERSION = '1.2.0';
+    public const VERSION = '1.3.0';
 
     /**
      * @param  callable(string): ?string  $installedVersion  package name => installed version
@@ -74,9 +74,9 @@ class ReportBuilder
      */
     protected function gitHead(): ?array
     {
-        $git = rtrim($this->basePath, '/').'/.git';
+        $git = $this->gitDirectory();
 
-        if (! is_file("{$git}/HEAD")) {
+        if ($git === null) {
             return null;
         }
 
@@ -102,6 +102,29 @@ class ReportBuilder
         }
 
         return $commit !== null && $this->isCommit($commit) ? ['commit' => $commit, 'branch' => $ref[2]] : null;
+    }
+
+    /**
+     * The nearest .git at or above the application, so an app inside a monorepo reports
+     * the commit of the repository it was deployed from.
+     */
+    protected function gitDirectory(): ?string
+    {
+        $directory = rtrim($this->basePath, '/');
+
+        while (true) {
+            if (is_file("{$directory}/.git/HEAD")) {
+                return "{$directory}/.git";
+            }
+
+            $parent = dirname($directory);
+
+            if ($parent === $directory) {
+                return null;
+            }
+
+            $directory = $parent;
+        }
     }
 
     protected function isCommit(string $value): bool
